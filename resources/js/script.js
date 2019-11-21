@@ -47,7 +47,7 @@ function populateMovie(movie, youtubeLink) {
   div.className = "wrapper";
   div.innerHTML = `
     <div class="wrap">
-        <div class="thumbnail"><img src="${movie.Poster}">q</div>
+        <div class="thumbnail"><img src="${movie.Poster}"></div>
     </div>
 
     <div class="wrap">
