@@ -1,0 +1,19 @@
+//JSON objects
+const moviesObj = [
+  {
+    "title": "Frozen",
+    "youtubeID": "TbQm5doF_Uc",
+  },
+  {
+    "title": "Inside Out",
+    "youtubeID": "yRUAzGQ3nSY",
+  },
+  {
+    "title": "Ratatouille",
+    "youtubeID": "NgsQ8mVkN8w",
+  },
+  {
+    "title": "Coco",
+    "youtubeID": "zNCz4mQzfEI",
+  }
+];

@@ -1,81 +1,83 @@
-//Popup Trailer
-document.addEventListener('click', function(e) {
-  e = e || window.event;
-  var target = e.target || e.srcElement;
+const moviesPlaceholder = document.querySelector("#movies");
+const timeHandler = new Intl.RelativeTimeFormat("th");
 
-  if (target.hasAttribute('data-toggle') && target.getAttribute('data-toggle') == 'modal') {
-      if (target.hasAttribute('data-target')) {
-          var m_ID = target.getAttribute('data-target');
-          document.getElementById(m_ID).classList.add('open');
-          e.preventDefault();
+function showTrailer(link) {
+  const modalPlaceholder = document.querySelector("[data-modal]");
+  if (!modalPlaceholder) return;
+
+  modalPlaceholder.innerHTML = `
+    <div class="modal">
+        <div class="modal-window">
+            <button type="button" class="modal-close">&times;</button>
+            <div class="iframe">
+                <iframe src="${link}" width="100%" height="auto" frameborder="0" 
+                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>`;
+
+  document.body.style.overflow = "hidden";
+
+  const closeButton = modalPlaceholder.querySelector("button");
+
+  const close = () => {
+    modalPlaceholder.innerHTML = null;
+    document.body.style.overflow = "auto";
+  };
+  closeButton.onclick = close;
+  window.addEventListener(
+    "keyup",
+    event => {
+      if (event.key === "Escape") {
+        close();
       }
-  }
-
-  // Close modal window with 'data-dismiss' attribute or when the backdrop is clicked
-  if ((target.hasAttribute('data-dismiss') && target.getAttribute('data-dismiss') == 'modal') || target.classList.contains('modal')) {
-      var modal = document.querySelector('[class="modal open"]');
-      modal.classList.remove('open');
-      e.preventDefault();
-  }
-}, false);
-
-//JSON objects
-var parsed = "";
-var moviesObj = [{
-    "title": "Frozen",
-    "youtubeID": "TbQm5doF_Uc",
-    "year": "2013"
-}, 
-{
-    "title": "Inside Out",
-    "youtubeID": "yRUAzGQ3nSY",
-    "year": "2015"
-}, 
-{
-    "title": "Ratatouille",
-    "youtubeID": "NgsQ8mVkN8w",
-    "year": "2007"
-},
-{
-    "title": "Coco",
-    "youtubeID": "zNCz4mQzfEI",
-    "year": "2017"
-}];
-//console.log(moviesObj)
-
-for (i = 0; i< moviesObj.length; i++) {
-    
-    var theTitle = document.querySelectorAll("h4.title")[i];
-    var theYear = document.querySelectorAll("h4.year")[i];
-    var youtube ="https://www.youtube.com/embed/" + moviesObj[i].youtubeID;
-    var theLink = document.getElementsByClassName("modal-window")[i];
-    const iframe = document.createElement("iframe");
-     // sets attribute 'src' to variable 'youtube'
-    iframe.setAttribute("src", youtube );
-    
-    //print to browser
-    theTitle.innerText = moviesObj[i].title;
-    theYear.innerText = "Released " + (2019-moviesObj[i].year) + " years ago";
-    theLink.appendChild(iframe);
-
-    //fetch api from omdb
-    var urlApi = "http://www.omdbapi.com/?t=" + moviesObj[i].title + "&apikey=8228bbbd";
-    var thePlot = document.querySelectorAll("p.plotText")[i];
-    // var theStory = document.getElementsByClassName("plotText")[i];
-    // const plotText = document.createElement("p");
-
-    fetch(urlApi)
-      .then(res => {
-          return res.json()
-      }) //transform the data into json
-      .then(data => {
-        console.log(data);
-        console.log(data.Title);
-        console.log(data.Plot);
-        thePlot.innerText = data.Plot;
-        //theStory.appendChild(plotText);
-      })
-      .catch(function(error) {
-        console.log('error: ' + error);
-    });
+    },
+    {
+      passive: true,
+      once: true
+    }
+  );
 }
+
+function populateMovie(movie, youtubeLink) {
+  const yearsAgo = movie.Year - new Date().getFullYear();
+
+  // Template
+  const div = document.createElement("div");
+  div.className = "wrapper";
+  div.innerHTML = `
+    <div class="wrap">
+        <div class="thumbnail"><img src="${movie.Poster}">q</div>
+    </div>
+
+    <div class="wrap">
+        <h4 class="title">Title: <span class="text">${movie.Title}</span></h4>
+        <h4 class="year">Released ${timeHandler.format(yearsAgo, "year")}</h4>
+        <div class="plot">
+            <h4 class="plotHeading">Story Overview:</h4>
+            <div>${movie.Plot}</div>
+        </div>
+        <button type="button" class="trailerBtn">Trailer</button>
+    </div>
+</div>`;
+
+  const trailerButton = div.querySelector("button");
+  const img = div.querySelector("img");
+  trailerButton.onclick = () => showTrailer(youtubeLink);
+  img.onclick = () => showTrailer(youtubeLink);
+
+  moviesPlaceholder.appendChild(div);
+}
+
+moviesObj.forEach(movie => {
+  const youtube = `https://www.youtube-nocookie.com/embed/${movie.youtubeID}`;
+  const urlApi = `https://www.omdbapi.com/?t=${movie.title}&apikey=8228bbbd`;
+
+  //fetch api from omdb
+  fetch(urlApi)
+    .then(res => res.json()) //transform the data into json
+    .then(movie => {
+      populateMovie(movie, youtube);
+    })
+    .catch(error => console.error("Error 👍", error));
+});
